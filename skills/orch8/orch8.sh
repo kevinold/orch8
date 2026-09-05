@@ -28,6 +28,8 @@ WORKER_KIND="claude"
 SPLIT_DIRECTION="right"
 # shellcheck disable=SC2034  # read indirectly by model_for() as TIER_<tier>
 { TIER_hard="opus"; TIER_grind="sonnet"; TIER_trivial="haiku"; }
+TRUST_POLL_SECS=10      # how long to poll a fresh pane for Claude Code's trust-folder dialog
+TRUST_CONFIRM_MS=10000  # how long to wait for the agent to leave the dialog after answering it
 
 GO=0; REPO="$PWD"; BASE=""; KIND=""; WORKTREES=""; CONFIG=""; LIST_TIERS=0
 UNITS=""
@@ -146,6 +148,7 @@ while IFS=$'\t' read -r id tier prompt; do
     [ -f "$tier_cfg" ] && echo "  cp $tier_cfg $wt/.compound-engineering/config.local.yaml"
     echo "  herdr pane split --current --direction $SPLIT_DIRECTION --cwd $wt --no-focus   # -> pane_id"
     echo "  herdr agent start $name --kind $KIND --pane <pane_id> -- --model $model"
+    echo "  herdr pane read <pane_id> (poll ${TRUST_POLL_SECS}s for trust prompt) -> herdr agent send-keys $name down enter -> herdr agent wait $name --until working --until idle"
     echo "  herdr agent prompt $name \"$SHIP_CMD $prompt\""
     echo
     continue
@@ -160,7 +163,29 @@ while IFS=$'\t' read -r id tier prompt; do
   if [ -z "$pane_id" ] || [ "$pane_id" = null ]; then
     echo "  ! pane split gave no pane_id; skipping $name" >&2; continue
   fi
-  herdr agent start "$name" --kind "$KIND" --pane "$pane_id" -- --model "$model"
+  if ! herdr agent start "$name" --kind "$KIND" --pane "$pane_id" -- --model "$model"; then
+    echo "  $name: agent start not ready; checking for trust prompt" >&2
+  fi
+
+  # Claude Code may show a one-time trust dialog in a fresh worktree. Poll for it
+  # before touching the pane: blind-firing keys risks hitting the dialog's default
+  # "No, exit" before it has rendered. A capture-then-here-string test (rather than
+  # `| grep -q`) avoids pipefail treating grep's early pipe-close as a real failure.
+  seen=0; i=0
+  while [ "$i" -lt "$TRUST_POLL_SECS" ]; do
+    out="$(herdr pane read "$pane_id" --source recent-unwrapped --lines 40 2>/dev/null || true)"
+    if grep -qiE 'trust.*this folder' <<<"$out"; then seen=1; break; fi
+    sleep 1; i=$((i + 1))
+  done
+
+  if [ "$seen" -eq 1 ]; then
+    herdr agent send-keys "$name" down enter || true
+    if ! herdr agent wait "$name" --until working --until idle --timeout "$TRUST_CONFIRM_MS" >/dev/null; then
+      herdr agent send-keys "$name" down enter || true
+      herdr agent wait "$name" --until working --until idle --timeout "$TRUST_CONFIRM_MS" >/dev/null || true
+    fi
+  fi
+
   herdr agent prompt "$name" "$SHIP_CMD $prompt"
   echo "  started agent '$name' in pane $pane_id"
   echo
