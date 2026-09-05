@@ -50,7 +50,7 @@ R8. The change creates `docs/USAGE.md` only. `README.md` and every other existin
 
 ### Scope Boundaries
 
-- `README.md` is not edited, not cross-linked from, and not restructured. This is a settled exclusion, not deferred work.
+- `README.md` is not edited and not restructured. This is a settled exclusion, not deferred work. `docs/USAGE.md` may link to `README.md` for the fuller reference (architecture, install, config) it deliberately does not repeat — that is a pointer, not an edit to `README.md` itself.
 - `skills/orch8/SKILL.md`, `skills/orch8/orch8.sh`, `skills/orch8/orch8.config`, `docs/architecture.html`, and `tests/run.sh` are untouched.
 - No new config keys, flags, or tier files.
 
@@ -132,7 +132,7 @@ KTD2. Order sections by the operator's run sequence (write TSV -> dry-run -> `--
 
 ## Verification Contract
 
-- `git status --porcelain` shows exactly one line, `?? docs/USAGE.md`: a new, untracked file, nothing modified or deleted. (`git diff --stat` alone does not prove this — an untracked file does not appear in a plain diff.)
+- `git status --porcelain` shows `docs/USAGE.md` added, alongside this plan document under `docs/plans/`; no other, pre-existing file is modified or deleted. (`git diff --stat` alone does not prove this — an untracked file does not appear in a plain diff.)
 - Read-through cross-check of every command, flag, default, printed string, and behavior claim in `docs/USAGE.md` against `skills/orch8/orch8.sh` (header comment, `sanitize()`, `model_for()`, dry-run and `--go` branches, footers) and `skills/orch8/orch8.config` (`tiers` map, key defaults) — the two sources of truth. Also confirm nothing in `docs/USAGE.md` traces only to `skills/orch8/SKILL.md` or `README.md` without matching `orch8.sh`'s actual behavior; those two are convenience sources, not authoritative.
 - Confirm the dry-run and `--go` output shown in the doc was captured by actually running the worked-example TSV through `bash skills/orch8/orch8.sh` in dry-run mode, not hand-transcribed.
 - Confirm the four required topics are each present and correct: TSV format with worked example (R3), dry-run vs `--go` with preconditions and skip behavior (R4), tier-to-model table plus the lever distinction (R5), tracking commands plus gate/escalate (R6).
