@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "orch8 — tiered Herdr fan-out",
+    "quality_profile": "showcase",
+    "viewBox": [1200, 620],
+    "views": [
+      { "id": "orchestrate", "label": "Orchestrator", "focus": ["user", "herdr", "orch8"], "note": "/orch8 runs /ce-plan to split the goal into independent units + tiers." },
+      { "id": "fanout", "label": "Tiered fan-out", "focus": ["orch8", "workerHard", "workerGrind", "workerTrivial"], "note": "One Herdr pane per unit, each on a driver model matched to difficulty." },
+      { "id": "ship", "label": "Parallel PRs", "focus": ["workerHard", "workerGrind", "workerTrivial", "prs"], "note": "Each pane runs /lfg end-to-end to its own PR." }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "goal: build X", "pos": [40, 300], "size": [120, 64] },
+    { "id": "herdr", "type": "cloud", "label": "Herdr", "sublabel": "pane shell + CLI", "tag": "spawns panes", "pos": [210, 292], "size": [150, 82] },
+    { "id": "orch8", "type": "backend", "label": "/orch8 orchestrator", "sublabel": "ce-plan -> units -> fan out", "tag": "Claude - strong", "pos": [430, 290], "size": [195, 76] },
+    { "id": "workerHard", "type": "backend", "label": "Pane: /lfg", "sublabel": "own worktree", "tag": "opus - hard", "pos": [740, 150], "size": [180, 66] },
+    { "id": "workerGrind", "type": "backend", "label": "Pane: /lfg", "sublabel": "own worktree", "tag": "sonnet - grind", "pos": [740, 296], "size": [180, 66] },
+    { "id": "workerTrivial", "type": "backend", "label": "Pane: /lfg", "sublabel": "own worktree", "tag": "haiku - trivial", "pos": [740, 442], "size": [180, 66] },
+    { "id": "prs", "type": "external", "label": "N PRs", "sublabel": "one per unit", "tag": "parallel", "pos": [1010, 296], "size": [140, 66] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Orchestrator pane (strong)", "wraps": ["orch8"] },
+    { "kind": "region", "label": "Worker pane + worktree", "wraps": ["workerHard"] },
+    { "kind": "region", "label": "Worker pane + worktree", "wraps": ["workerGrind"] },
+    { "kind": "region", "label": "Worker pane + worktree", "wraps": ["workerTrivial"] }
+  ],
+  "connections": [
+    { "id": "goal", "from": "user", "to": "herdr", "label": "goal", "variant": "emphasis" },
+    { "id": "run", "from": "herdr", "to": "orch8", "label": "run /orch8", "variant": "emphasis" },
+    { "id": "fan-hard", "from": "orch8", "to": "workerHard", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "fan-grind", "from": "orch8", "to": "workerGrind", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "fan-trivial", "from": "orch8", "to": "workerTrivial", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "pr-hard", "from": "workerHard", "to": "prs", "fromSide": "right", "toSide": "left" },
+    { "id": "pr-grind", "from": "workerGrind", "to": "prs", "fromSide": "right", "toSide": "left" },
+    { "id": "pr-trivial", "from": "workerTrivial", "to": "prs", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "violet", "title": "orch8 (one orchestrator pane)", "items": ["/orch8 runs /ce-plan -> independent units + tiers, then fans out via the Herdr CLI.", "Stays on a strong Claude model; workers run cheap.", "Pi not used. CE unmodified."] },
+    { "dot": "amber", "title": "Per worker pane", "items": ["Own git worktree + config.local.yaml (fable elevation) copied in.", "Driver model = launch flag: hard->opus, grind->sonnet, trivial->haiku.", "Runs /lfg end-to-end to its own PR."] },
+    { "dot": "slate", "title": "Herdr does the spawning", "items": ["pane split --cwd <wt> -> agent start --kind claude -- --model X -> agent prompt /lfg.", "Two levers: --model = driver; config.local.yaml = elevation, read from the worktree root.", "Dry-run by default; --go fires."] }
+  ]
+}

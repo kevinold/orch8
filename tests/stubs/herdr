@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Test stub: never talks to a real Herdr. Logs every call; `pane split` returns
+# the JSON shape orch8.sh parses with jq.
+set -euo pipefail
+printf 'herdr %s\n' "$*" >> "${ORCH8_TEST_LOG:?ORCH8_TEST_LOG unset}"
+
+case "${1:-}:${2:-}" in
+  pane:split)
+    n=$(( $(grep -c '^herdr pane split' "$ORCH8_TEST_LOG") ))
+    printf '{"result":{"pane":{"pane_id":"pane-%s"}}}\n' "$n"
+    ;;
+  agent:start|agent:prompt) : ;;
+  *) echo "stub herdr: unhandled $*" >&2; exit 1;;
+esac

@@ -1,0 +1,32 @@
+orch8: repo=<WORK>/fake-repo base=main kind=claude worktrees=<WORK>/worktrees mode=DRY-RUN
+orch8: decompose=/ce-plan ship=/lfg
+
+[auth-unit] tier=hard model=opus  ->  <WORK>/worktrees/auth-unit  (orch8/auth-unit)
+  git worktree add -b orch8/auth-unit <WORK>/worktrees/auth-unit main
+  cp <SKILL>/config.tiers/hard.local.yaml <WORK>/worktrees/auth-unit/.compound-engineering/config.local.yaml
+  herdr pane split --current --direction right --cwd <WORK>/worktrees/auth-unit --no-focus   # -> pane_id
+  herdr agent start auth-unit --kind claude --pane <pane_id> -- --model opus
+  herdr agent prompt auth-unit "/lfg Add OAuth device flow"
+
+[rate-limiter] tier=grind model=sonnet  ->  <WORK>/worktrees/rate-limiter  (orch8/rate-limiter)
+  git worktree add -b orch8/rate-limiter <WORK>/worktrees/rate-limiter main
+  cp <SKILL>/config.tiers/grind.local.yaml <WORK>/worktrees/rate-limiter/.compound-engineering/config.local.yaml
+  herdr pane split --current --direction right --cwd <WORK>/worktrees/rate-limiter --no-focus   # -> pane_id
+  herdr agent start rate-limiter --kind claude --pane <pane_id> -- --model sonnet
+  herdr agent prompt rate-limiter "/lfg Add a token bucket"
+
+[copy-tweak] tier=trivial model=haiku  ->  <WORK>/worktrees/copy-tweak  (orch8/copy-tweak)
+  git worktree add -b orch8/copy-tweak <WORK>/worktrees/copy-tweak main
+  cp <SKILL>/config.tiers/trivial.local.yaml <WORK>/worktrees/copy-tweak/.compound-engineering/config.local.yaml
+  herdr pane split --current --direction right --cwd <WORK>/worktrees/copy-tweak --no-focus   # -> pane_id
+  herdr agent start copy-tweak --kind claude --pane <pane_id> -- --model haiku
+  herdr agent prompt copy-tweak "/lfg Fix the footer copy"
+
+[odd-one] tier=sonnet-1m model=sonnet-1m  ->  <WORK>/worktrees/odd-one  (orch8/odd-one)
+  ! no tier config <SKILL>/config.tiers/sonnet-1m.local.yaml — pane will inherit repo config.yaml
+  git worktree add -b orch8/odd-one <WORK>/worktrees/odd-one main
+  herdr pane split --current --direction right --cwd <WORK>/worktrees/odd-one --no-focus   # -> pane_id
+  herdr agent start odd-one --kind claude --pane <pane_id> -- --model sonnet-1m
+  herdr agent prompt odd-one "/lfg Use the tier name as the model verbatim"
+
+orch8: 4 unit(s) planned (dry-run — rerun with --go to launch).

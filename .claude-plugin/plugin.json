@@ -1,0 +1,20 @@
+{
+  "name": "orch8",
+  "version": "0.1.0",
+  "description": "Fan a goal out into independent units, each a tiered Herdr pane running your ship command to its own PR",
+  "author": {
+    "name": "Kevin Old"
+  },
+  "homepage": "https://github.com/kevinold/orch8",
+  "repository": "https://github.com/kevinold/orch8",
+  "license": "MIT",
+  "keywords": [
+    "orchestration",
+    "herdr",
+    "parallel",
+    "worktrees",
+    "compound-engineering",
+    "workflow-automation",
+    "agents"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "orch8",
+  "owner": {
+    "name": "Kevin Old"
+  },
+  "metadata": {
+    "description": "Tiered Herdr fan-out: N independent units to N parallel PRs",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "orch8",
+      "description": "Fan a goal out into independent units, each a tiered Herdr pane running your ship command to its own PR",
+      "author": {
+        "name": "Kevin Old"
+      },
+      "homepage": "https://github.com/kevinold/orch8",
+      "tags": [
+        "orchestration",
+        "herdr",
+        "parallel",
+        "worktrees",
+        "compound-engineering",
+        "workflow-automation"
+      ],
+      "source": "./"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+auth-unit	hard	Add OAuth device flow
+
+# a comment line is skipped
+Rate Limiter	grind	Add a token bucket
+copy-tweak	trivial	Fix the footer copy
+odd-one	sonnet-1m	Use the tier name as the model verbatim

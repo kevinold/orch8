@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Test stub: never touches a real repo. Logs every call, answers the few
+# subcommands orch8.sh uses.
+set -euo pipefail
+printf 'git %s\n' "$*" >> "${ORCH8_TEST_LOG:?ORCH8_TEST_LOG unset}"
+
+args=("$@")
+# strip a leading `-C <dir>`
+if [ "${args[0]:-}" = "-C" ]; then args=("${args[@]:2}"); fi
+
+case "${args[0]:-}" in
+  rev-parse)
+    case "${args[1]:-}" in
+      --show-toplevel) echo "${ORCH8_TEST_REPO_ROOT:-/tmp/orch8-fake-repo}";;
+      --abbrev-ref)    echo "${ORCH8_TEST_BRANCH:-main}";;
+      *) echo "stub git: unhandled rev-parse ${args[*]}" >&2; exit 1;;
+    esac
+    ;;
+  worktree)
+    # worktree add -b <branch> <dir> <base>
+    [ "${args[1]:-}" = "add" ] || { echo "stub git: unhandled worktree ${args[*]}" >&2; exit 1; }
+    mkdir -p "${args[4]:-}"
+    ;;
+  *) echo "stub git: unhandled ${args[*]}" >&2; exit 1;;
+esac

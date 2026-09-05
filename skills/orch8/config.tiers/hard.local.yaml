@@ -1,0 +1,4 @@
+# orch8 tier: hard — architectural / high-risk unit.
+# Driver model is set by orch8.sh at launch (hard -> opus). These keys tune CE inside the pane.
+plan_model: fable          # bump to opus if a unit needs the deepest architectural planning
+brainstorm_model: fable
