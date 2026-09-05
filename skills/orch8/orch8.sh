@@ -29,11 +29,12 @@ SPLIT_DIRECTION="right"
 # shellcheck disable=SC2034  # read indirectly by model_for() as TIER_<tier>
 { TIER_hard="opus"; TIER_grind="sonnet"; TIER_trivial="haiku"; }
 
-GO=0; REPO="$PWD"; BASE=""; KIND=""; WORKTREES=""; CONFIG=""
+GO=0; REPO="$PWD"; BASE=""; KIND=""; WORKTREES=""; CONFIG=""; LIST_TIERS=0
 UNITS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --go) GO=1;;
+    --list-tiers) LIST_TIERS=1;;
     --repo) REPO="$2"; shift;;
     --base) BASE="$2"; shift;;
     --kind) KIND="$2"; shift;;
@@ -83,14 +84,6 @@ if [ -n "$CONFIG" ]; then
 fi
 [ -n "$KIND" ] || KIND="$WORKER_KIND"
 
-if [ -z "$UNITS" ] || [ ! -f "$UNITS" ]; then
-  echo "need a units.tsv file (see --help)" >&2; exit 2
-fi
-
-REPO_ROOT="$(git -C "$REPO" rev-parse --show-toplevel)"
-[ -z "$BASE" ] && BASE="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
-[ -z "$WORKTREES" ] && WORKTREES="$(dirname "$REPO_ROOT")/orch8-worktrees"
-
 model_for() {  # tier -> driver model (from config tiers map; unmapped tier is the model itself)
   local var
   if [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
@@ -100,6 +93,22 @@ model_for() {  # tier -> driver model (from config tiers map; unmapped tier is t
     printf '%s' "$1"
   fi
 }
+
+if [ "$LIST_TIERS" -eq 1 ]; then
+  for t in hard grind trivial; do
+    printf '%s->%s\n' "$t" "$(model_for "$t")"
+  done
+  exit 0
+fi
+
+if [ -z "$UNITS" ] || [ ! -f "$UNITS" ]; then
+  echo "need a units.tsv file (see --help)" >&2; exit 2
+fi
+
+REPO_ROOT="$(git -C "$REPO" rev-parse --show-toplevel)"
+[ -z "$BASE" ] && BASE="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+[ -z "$WORKTREES" ] && WORKTREES="$(dirname "$REPO_ROOT")/orch8-worktrees"
+
 sanitize() {  # -> valid herdr agent name: [a-z][a-z0-9_-]{0,31}
   local n; n="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-')"
   if [ -z "$n" ] || [ "${n:0:1}" = "-" ]; then n="u-$n"; fi
