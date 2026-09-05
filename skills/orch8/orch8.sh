@@ -83,7 +83,9 @@ if [ -n "$CONFIG" ]; then
 fi
 [ -n "$KIND" ] || KIND="$WORKER_KIND"
 
-[ -n "$UNITS" ] && [ -f "$UNITS" ] || { echo "need a units.tsv file (see --help)" >&2; exit 2; }
+if [ -z "$UNITS" ] || [ ! -f "$UNITS" ]; then
+  echo "need a units.tsv file (see --help)" >&2; exit 2
+fi
 
 REPO_ROOT="$(git -C "$REPO" rev-parse --show-toplevel)"
 [ -z "$BASE" ] && BASE="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
@@ -100,7 +102,7 @@ model_for() {  # tier -> driver model (from config tiers map; unmapped tier is t
 }
 sanitize() {  # -> valid herdr agent name: [a-z][a-z0-9_-]{0,31}
   local n; n="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-')"
-  [ "${n:0:1}" = "-" ] || [ -z "$n" ] && n="u-$n"
+  if [ -z "$n" ] || [ "${n:0:1}" = "-" ]; then n="u-$n"; fi
   case "$n" in [a-z]*) :;; *) n="u-$n";; esac
   printf '%s' "${n:0:32}"
 }
@@ -146,7 +148,9 @@ while IFS=$'\t' read -r id tier prompt; do
     cp "$tier_cfg" "$wt/.compound-engineering/config.local.yaml"
   fi
   pane_id="$(herdr pane split --current --direction "$SPLIT_DIRECTION" --cwd "$wt" --no-focus | jq -r '.result.pane.pane_id')"
-  [ -n "$pane_id" ] && [ "$pane_id" != null ] || { echo "  ! pane split gave no pane_id; skipping $name" >&2; continue; }
+  if [ -z "$pane_id" ] || [ "$pane_id" = null ]; then
+    echo "  ! pane split gave no pane_id; skipping $name" >&2; continue
+  fi
   herdr agent start "$name" --kind "$KIND" --pane "$pane_id" -- --model "$model"
   herdr agent prompt "$name" "$SHIP_CMD $prompt"
   echo "  started agent '$name' in pane $pane_id"
