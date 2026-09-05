@@ -29,11 +29,12 @@ SPLIT_DIRECTION="right"
 # shellcheck disable=SC2034  # read indirectly by model_for() as TIER_<tier>
 { TIER_hard="opus"; TIER_grind="sonnet"; TIER_trivial="haiku"; }
 
-GO=0; REPO="$PWD"; BASE=""; KIND=""; WORKTREES=""; CONFIG=""
+GO=0; REPO="$PWD"; BASE=""; KIND=""; WORKTREES=""; CONFIG=""; LIST_TIERS=0
 UNITS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --go) GO=1;;
+    --list-tiers) LIST_TIERS=1;;
     --repo) REPO="$2"; shift;;
     --base) BASE="$2"; shift;;
     --kind) KIND="$2"; shift;;
@@ -82,6 +83,14 @@ if [ -n "$CONFIG" ]; then
   ' "$CONFIG")"
 fi
 [ -n "$KIND" ] || KIND="$WORKER_KIND"
+
+if [ "$LIST_TIERS" -eq 1 ]; then
+  for t in hard grind trivial; do
+    var="TIER_$t"
+    printf '%s->%s\n' "$t" "${!var}"
+  done
+  exit 0
+fi
 
 if [ -z "$UNITS" ] || [ ! -f "$UNITS" ]; then
   echo "need a units.tsv file (see --help)" >&2; exit 2

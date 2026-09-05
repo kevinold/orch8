@@ -111,5 +111,12 @@ for expect in "decompose=/ce-plan ship=/lfg" "kind=claude" "tier=hard model=opus
   case "$def_out" in *"$expect"*) ok "default: $expect";; *) fail "default: $expect not in output";; esac
 done
 
+echo "== --list-tiers prints tier->model and exits 0 =="
+set +e
+tiers_out="$(bash "$ORCH8" --list-tiers)"; rc=$?
+set -e
+check "exit code" "$rc" "0"
+check "tier list" "$tiers_out" "$(printf 'hard->opus\ngrind->sonnet\ntrivial->haiku')"
+
 echo
 if [ "$fails" -eq 0 ]; then echo "all tests passed"; else echo "$fails test(s) failed"; exit 1; fi
