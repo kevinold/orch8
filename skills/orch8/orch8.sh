@@ -84,10 +84,19 @@ if [ -n "$CONFIG" ]; then
 fi
 [ -n "$KIND" ] || KIND="$WORKER_KIND"
 
+model_for() {  # tier -> driver model (from config tiers map; unmapped tier is the model itself)
+  local var
+  if [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    var="TIER_$1"
+    printf '%s' "${!var:-$1}"
+  else
+    printf '%s' "$1"
+  fi
+}
+
 if [ "$LIST_TIERS" -eq 1 ]; then
   for t in hard grind trivial; do
-    var="TIER_$t"
-    printf '%s->%s\n' "$t" "${!var}"
+    printf '%s->%s\n' "$t" "$(model_for "$t")"
   done
   exit 0
 fi
@@ -100,15 +109,6 @@ REPO_ROOT="$(git -C "$REPO" rev-parse --show-toplevel)"
 [ -z "$BASE" ] && BASE="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
 [ -z "$WORKTREES" ] && WORKTREES="$(dirname "$REPO_ROOT")/orch8-worktrees"
 
-model_for() {  # tier -> driver model (from config tiers map; unmapped tier is the model itself)
-  local var
-  if [[ "$1" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-    var="TIER_$1"
-    printf '%s' "${!var:-$1}"
-  else
-    printf '%s' "$1"
-  fi
-}
 sanitize() {  # -> valid herdr agent name: [a-z][a-z0-9_-]{0,31}
   local n; n="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9_-' '-')"
   if [ -z "$n" ] || [ "${n:0:1}" = "-" ]; then n="u-$n"; fi
